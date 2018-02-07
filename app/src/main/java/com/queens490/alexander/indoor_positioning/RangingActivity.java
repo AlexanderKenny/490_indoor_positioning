@@ -11,6 +11,7 @@ import org.altbeacon.beacon.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 
 public class RangingActivity extends Activity implements BeaconConsumer, RangeNotifier {
@@ -62,9 +63,23 @@ public class RangingActivity extends Activity implements BeaconConsumer, RangeNo
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (beacons.size() > 0) {
-                    t.setText(beacons.iterator().next().getDistance()+"\n meters away.");
+                String debugText = "Beacons in Range: " + beacons.size() + "\n";
+                Beacon currentBeacon;
+                Iterator<Beacon> beaconIterator = beacons.iterator();
+                int x = 0;
+                while (x < beacons.size()) {
+                    currentBeacon = beaconIterator.next();
+                    debugText = debugText + "Address: " + currentBeacon.getBluetoothAddress() + "\n";
+                    debugText = debugText + "UUID: " + currentBeacon.getServiceUuid() + "\n";
+                    debugText = debugText + "Manufacturer: " + currentBeacon.getManufacturer() + "\n";
+                    debugText = debugText + "TX Power: " + currentBeacon.getTxPower() + "\n";
+                    debugText = debugText + "RSSI: " + currentBeacon.getRssi() + "\n";
+                    debugText = debugText + "AVG RSSI: " + currentBeacon.getRunningAverageRssi() + "\n";
+                    debugText = debugText + "Distance: " + currentBeacon.getDistance() + "\n";
+                    debugText = debugText + "\n";
+                    x++;
                 }
+                t.setText(debugText);
             }
         });
     }
