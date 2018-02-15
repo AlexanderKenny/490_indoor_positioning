@@ -2,6 +2,8 @@ package com.queens490.alexander.indoor_positioning;
 
 import android.app.Activity;
 import android.os.RemoteException;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,17 +14,29 @@ import org.altbeacon.beacon.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Vector;
 
 
-public class RangingActivity extends Activity implements BeaconConsumer, RangeNotifier {
+public class RangingActivity extends AppCompatActivity implements BeaconConsumer, RangeNotifier {
     protected static final String TAG = "RangingActivity";
     private BeaconManager mBeaconManager;
     TextView t;
+    private ArrayList<String[]> beaconCache = new ArrayList<String[]>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ranging);
+
+        // Get the ViewPager and set it's PagerAdapter so that it can display items
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        viewPager.setAdapter(new rangingFragmentPageAdapter(getSupportFragmentManager(),
+                RangingActivity.this));
+
+        // Give the TabLayout the ViewPager
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
         t = (TextView)findViewById(R.id.rangetext);
 
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
@@ -60,27 +74,62 @@ public class RangingActivity extends Activity implements BeaconConsumer, RangeNo
 
     @Override
     public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                String debugText = "Beacons in Range: " + beacons.size() + "\n";
+
                 Beacon currentBeacon;
                 Iterator<Beacon> beaconIterator = beacons.iterator();
                 int x = 0;
                 while (x < beacons.size()) {
                     currentBeacon = beaconIterator.next();
-                    debugText = debugText + "Address: " + currentBeacon.getBluetoothAddress() + "\n";
-                    debugText = debugText + "UUID: " + currentBeacon.getServiceUuid() + "\n";
-                    debugText = debugText + "Manufacturer: " + currentBeacon.getManufacturer() + "\n";
-                    debugText = debugText + "TX Power: " + currentBeacon.getTxPower() + "\n";
-                    debugText = debugText + "RSSI: " + currentBeacon.getRssi() + "\n";
-                    debugText = debugText + "AVG RSSI: " + currentBeacon.getRunningAverageRssi() + "\n";
-                    debugText = debugText + "Distance: " + currentBeacon.getDistance() + "\n";
-                    debugText = debugText + "\n";
+                    int indexFound=0;
+                    if (beaconCache.isEmpty()){
+                        beaconCache.add(new String[]{currentBeacon.getBluetoothAddress(),
+                                String.valueOf(currentBeacon.getServiceUuid()),
+                                String.valueOf(currentBeacon.getManufacturer()),
+                                String.valueOf(currentBeacon.getTxPower()),
+                                String.valueOf(currentBeacon.getRssi()),
+                                String.valueOf(currentBeacon.getRunningAverageRssi()),
+                                String.valueOf(currentBeacon.getDistance())
+                        });
+                    }
+                    else{
+                        int y=0;
+                        boolean beaconCached = false;
+                        Iterator<String[]> beaconCacheIterator = beaconCache.iterator();
+                        while (beaconCacheIterator.hasNext()){
+                            if (beaconCacheIterator.next()[0].equals(currentBeacon.getBluetoothAddress())){
+                                //we have cached before store this index to replace
+                                beaconCached = true;
+                                indexFound=y;
+                            }
+                            y++;
+                        }
+                        if (!beaconCached){
+                            beaconCache.add(new String[]{currentBeacon.getBluetoothAddress(),
+                                    String.valueOf(currentBeacon.getServiceUuid()),
+                                    String.valueOf(currentBeacon.getManufacturer()),
+                                    String.valueOf(currentBeacon.getTxPower()),
+                                    String.valueOf(currentBeacon.getRssi()),
+                                    String.valueOf(currentBeacon.getRunningAverageRssi()),
+                                    String.valueOf(currentBeacon.getDistance())
+                            });
+                        }
+                        else
+                        {
+                            beaconCache.set(indexFound,new String[]{currentBeacon.getBluetoothAddress(),
+                                    String.valueOf(currentBeacon.getServiceUuid()),
+                                    String.valueOf(currentBeacon.getManufacturer()),
+                                    String.valueOf(currentBeacon.getTxPower()),
+                                    String.valueOf(currentBeacon.getRssi()),
+                                    String.valueOf(currentBeacon.getRunningAverageRssi()),
+                                    String.valueOf(currentBeacon.getDistance())
+                            });
+                        }
+                    }
                     x++;
                 }
-                t.setText(debugText);
-            }
-        });
+
+    }
+    public ArrayList<String[]> getBeaconCache(){
+        return beaconCache;
     }
 }
