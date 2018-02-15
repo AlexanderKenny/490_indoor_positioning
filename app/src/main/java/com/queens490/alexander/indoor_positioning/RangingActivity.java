@@ -22,11 +22,13 @@ public class RangingActivity extends AppCompatActivity implements BeaconConsumer
     private BeaconManager mBeaconManager;
     TextView t;
     private ArrayList<String[]> beaconCache = new ArrayList<String[]>();
+    simpleDrawingView ourDrawingView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ranging);
+        ourDrawingView = findViewById(R.id.simpleDrawingView);
 
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -127,7 +129,6 @@ public class RangingActivity extends AppCompatActivity implements BeaconConsumer
                     }
                     x++;
                 }
-
     }
     public ArrayList<String[]> getBeaconCache(){
         return beaconCache;
