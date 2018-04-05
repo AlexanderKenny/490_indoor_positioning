@@ -30,6 +30,7 @@ public class simpleDrawingView extends View {
     private Paint locationPaint;
     private Paint rangePaint;
     private Paint textPaint;
+    private Paint averagePaint;
     double beaconA_x, beaconA_y, beaconB_x, beaconB_y, beaconC_x, beaconC_y, beaconD_x, beaconD_y, x_dims, y_dims, viewWidth, viewHeight;
     double x_sf, y_sf;
     double rangeA, rangeB, rangeC, rangeD;
@@ -90,14 +91,14 @@ public class simpleDrawingView extends View {
                 || beaconC_x_text == null || beaconC_y_text == null
                 || beaconD_x_text == null || beaconD_y_text == null)
         {*/
-            beaconA_x = 0;
+            beaconA_x = 3.57;
             beaconA_y = 0;
-            beaconB_x = 3;
+            beaconB_x = 0;
             beaconB_y = 0;
-            beaconC_x = 0;
-            beaconC_y = 3;
-            beaconD_x = 3;
-            beaconD_y = 3;
+            beaconC_x = 3.57;
+            beaconC_y = 4.21;
+            beaconD_x = 0;
+            beaconD_y = 4.21;
         /*}
         else {
             beaconA_x = Double.valueOf(beaconA_x_text.getText().toString());
@@ -151,30 +152,51 @@ public class simpleDrawingView extends View {
                 //Beacon A
                 rangeA = Double.parseDouble(currentBeacon[6]);
                 canvas.drawOval((float)((beaconA_x*x_sf)-(rangeA*x_sf)),(float)((beaconA_y*y_sf)-(rangeA*y_sf)),(float)((beaconA_x*x_sf)+(rangeA*x_sf)),(float)((beaconA_y*y_sf)+(rangeA*y_sf)),rangePaint);
-                canvas.drawText(String.valueOf(rangeA),(float)(beaconA_x*x_sf)+20,(float)(beaconA_y*y_sf)+80 ,textPaint);
+                canvas.drawText(String.format("Beacon A: %.2f", rangeA),(float)(beaconA_x*x_sf)-400,(float)(beaconA_y*y_sf)+80 ,textPaint);
             }
             else if (currentBeacon[0].equals("C9:92:A7:06:56:12"))
             {
                 //Beacon B
                 rangeB = Double.parseDouble(currentBeacon[6]);
                 canvas.drawOval((float)((beaconB_x*x_sf)-(rangeB*x_sf)),(float)((beaconB_y*y_sf)-(rangeB*y_sf)),(float)((beaconB_x*x_sf)+(rangeB*x_sf)),(float)((beaconB_y*y_sf)+(rangeB*y_sf)),rangePaint);
-                canvas.drawText(String.valueOf(rangeB),(float)(beaconB_x*x_sf)-400,(float)(beaconB_y*y_sf)+80 ,textPaint);
+                canvas.drawText(String.format("Beacon B: %.2f", rangeB),(float)(beaconB_x*x_sf)+20,(float)(beaconB_y*y_sf)+80 ,textPaint);
             }
             else if (currentBeacon[0].equals("E1:08:67:65:8E:77"))
             {
                 //Beacon C
                 rangeC = Double.parseDouble(currentBeacon[6]);
                 canvas.drawOval((float)((beaconC_x*x_sf)-(rangeC*x_sf)),(float)((beaconC_y*y_sf)-(rangeC*y_sf)),(float)((beaconC_x*x_sf)+(rangeC*x_sf)),(float)((beaconC_y*y_sf)+(rangeC*y_sf)),rangePaint);
-                canvas.drawText(String.valueOf(rangeC),(float)(beaconC_x*x_sf)+20,(float)(beaconC_y*y_sf)-20 ,textPaint);
+                canvas.drawText(String.format("Beacon C: %.2f", rangeC),(float)(beaconC_x*x_sf)-400,(float)(beaconC_y*y_sf)-20 ,textPaint);
             }
             else if (currentBeacon[0].equals("CA:D9:34:54:E9:71"))
             {
                 //Beacon D
                 rangeD = Double.parseDouble(currentBeacon[6]);
                 canvas.drawOval((float)((beaconD_x*x_sf)-(rangeD*x_sf)),(float)((beaconD_y*y_sf)-(rangeD*y_sf)),(float)((beaconD_x*x_sf)+(rangeD*x_sf)),(float)((beaconD_y*y_sf)+(rangeD*y_sf)),rangePaint);
-                canvas.drawText(String.valueOf(rangeD),(float)(beaconD_x*x_sf)-400,(float)(beaconD_y*y_sf)-20 ,textPaint);
+                canvas.drawText(String.format("Beacon D: %.2f",rangeD),(float)(beaconD_x*x_sf)+20,(float)(beaconD_y*y_sf)-20 ,textPaint);
             }
         }
+        trilateration trilaterationCalc = new trilateration();
+        float[] trilaterationPos = trilaterationCalc.calcTrilateration((float)rangeA, (float)rangeB, (float)rangeD, (float)beaconA_x, (float)beaconA_y, (float)beaconB_x, (float)beaconB_y, (float)beaconD_x, (float)beaconD_y);
+        float xAvg = trilaterationPos[0];
+        float yAvg = trilaterationPos[1];
+        float[] trilaterationPos2 = trilaterationCalc.calcTrilateration((float)rangeD, (float)rangeB, (float)rangeC, (float)beaconD_x, (float)beaconD_y, (float)beaconB_x, (float)beaconB_y, (float)beaconC_x, (float)beaconC_y);
+        xAvg += trilaterationPos2[0];
+        yAvg += trilaterationPos2[1];
+        float[] trilaterationPos3 = trilaterationCalc.calcTrilateration((float)rangeA, (float)rangeD, (float)rangeC, (float)beaconA_x, (float)beaconA_y, (float)beaconD_x, (float)beaconD_y, (float)beaconC_x, (float)beaconC_y);
+        xAvg += trilaterationPos3[0];
+        yAvg += trilaterationPos3[1];
+        float[] trilaterationPos4 = trilaterationCalc.calcTrilateration((float)rangeA, (float)rangeB, (float)rangeC, (float)beaconA_x, (float)beaconA_y, (float)beaconB_x, (float)beaconB_y, (float)beaconC_x, (float)beaconC_y);
+        xAvg += trilaterationPos4[0];
+        yAvg += trilaterationPos4[1];
+        xAvg = xAvg / 4;
+        yAvg = yAvg / 4;
+        canvas.drawCircle((float)(xAvg*x_sf), (float)(yAvg*y_sf), 50, averagePaint);
+        canvas.drawCircle((float)(trilaterationPos[0]*x_sf), (float)(trilaterationPos[1]*y_sf), 10, locationPaint);
+        canvas.drawCircle((float)(trilaterationPos2[0]*x_sf), (float)(trilaterationPos2[1]*y_sf), 10, locationPaint);
+        canvas.drawCircle((float)(trilaterationPos3[0]*x_sf), (float)(trilaterationPos3[1]*y_sf), 10, locationPaint);
+        canvas.drawCircle((float)(trilaterationPos4[0]*x_sf), (float)(trilaterationPos4[1]*y_sf), 10, locationPaint);
+        canvas.drawText(String.format("X: %.2f Y: %.2f", xAvg, yAvg), (float)(trilaterationPos[0]*x_sf-50),(float)(trilaterationPos[1]*y_sf+150), textPaint);
     }
 
     private void setupPaint() {
@@ -193,6 +215,14 @@ public class simpleDrawingView extends View {
         locationPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         locationPaint.setStrokeJoin(Paint.Join.ROUND);
         locationPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        averagePaint = new Paint();
+        averagePaint.setColor(Color.YELLOW);
+        averagePaint.setAntiAlias(true);
+        averagePaint.setStrokeWidth(5);
+        averagePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        averagePaint.setStrokeJoin(Paint.Join.ROUND);
+        averagePaint.setStrokeCap(Paint.Cap.ROUND);
 
         rangePaint = new Paint();
         rangePaint.setColor(rangePaintColour);
