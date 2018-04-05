@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import org.altbeacon.beacon.*;
+import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,9 +44,14 @@ public class RangingActivity extends AppCompatActivity implements BeaconConsumer
 
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
 
+
         // In this example, we will use Eddystone protocol, so we have to define it here
         mBeaconManager.getBeaconParsers().add(new BeaconParser().
                 setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT));
+
+        //Use a five second average
+        BeaconManager.setRssiFilterImplClass(RunningAverageRssiFilter.class);
+        RunningAverageRssiFilter.setSampleExpirationMilliseconds(5000l);
 
 
         // Binds this activity to the BeaconService

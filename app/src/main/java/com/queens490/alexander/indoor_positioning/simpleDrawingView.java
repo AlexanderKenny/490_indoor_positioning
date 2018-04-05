@@ -15,6 +15,12 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 
+import com.lemmingapex.trilateration.NonLinearLeastSquaresSolver;
+import com.lemmingapex.trilateration.TrilaterationFunction;
+
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
+import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -91,14 +97,14 @@ public class simpleDrawingView extends View {
                 || beaconC_x_text == null || beaconC_y_text == null
                 || beaconD_x_text == null || beaconD_y_text == null)
         {*/
-            beaconA_x = 3.57;
+            beaconA_x = 1.5;
             beaconA_y = 0;
             beaconB_x = 0;
             beaconB_y = 0;
-            beaconC_x = 3.57;
-            beaconC_y = 4.21;
+            beaconC_x = 1.5;
+            beaconC_y = 2;
             beaconD_x = 0;
-            beaconD_y = 4.21;
+            beaconD_y = 2;
         /*}
         else {
             beaconA_x = Double.valueOf(beaconA_x_text.getText().toString());
@@ -176,7 +182,7 @@ public class simpleDrawingView extends View {
                 canvas.drawText(String.format("Beacon D: %.2f",rangeD),(float)(beaconD_x*x_sf)+20,(float)(beaconD_y*y_sf)-20 ,textPaint);
             }
         }
-        trilateration trilaterationCalc = new trilateration();
+        /*trilateration trilaterationCalc = new trilateration();
         float[] trilaterationPos = trilaterationCalc.calcTrilateration((float)rangeA, (float)rangeB, (float)rangeD, (float)beaconA_x, (float)beaconA_y, (float)beaconB_x, (float)beaconB_y, (float)beaconD_x, (float)beaconD_y);
         float xAvg = trilaterationPos[0];
         float yAvg = trilaterationPos[1];
@@ -197,6 +203,15 @@ public class simpleDrawingView extends View {
         canvas.drawCircle((float)(trilaterationPos3[0]*x_sf), (float)(trilaterationPos3[1]*y_sf), 10, locationPaint);
         canvas.drawCircle((float)(trilaterationPos4[0]*x_sf), (float)(trilaterationPos4[1]*y_sf), 10, locationPaint);
         canvas.drawText(String.format("X: %.2f Y: %.2f", xAvg, yAvg), (float)(trilaterationPos[0]*x_sf-50),(float)(trilaterationPos[1]*y_sf+150), textPaint);
+        */
+        double[][] positions = new double[][] { { beaconA_x, beaconA_y }, { beaconB_x, beaconB_y }, { beaconC_x, beaconC_y }, { beaconD_x, beaconD_y } };
+        double[] distances = new double[] { rangeA, rangeB, rangeC, rangeD };
+
+        NonLinearLeastSquaresSolver solver = new NonLinearLeastSquaresSolver(new TrilaterationFunction(positions, distances), new LevenbergMarquardtOptimizer());
+        LeastSquaresOptimizer.Optimum optimum = solver.solve();
+        double[] centroid = optimum.getPoint().toArray();
+        canvas.drawCircle((float)(centroid[0]*x_sf), (float)(centroid[1]*y_sf), 50, averagePaint);
+        canvas.drawText(String.format("X: %.2f Y: %.2f", centroid[0], centroid[1]), (float)(centroid[0]*x_sf-50),(float)(centroid[1]*y_sf+150), textPaint);
     }
 
     private void setupPaint() {
